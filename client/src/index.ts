@@ -1,26 +1,13 @@
-import runArtificialLife from './artificial-life'
+import { runArtificialLife } from './artificial-life'
 
-const rootEl = document.getElementById('root')
-
-if (rootEl === null) throw Error("Could not find 'root' element")
-
-const canvasEl = document.createElement('canvas')
-
-rootEl.append(canvasEl)
-
-canvasEl.setAttribute('width', '500')
-canvasEl.setAttribute('height', '500')
-
-const canvasContext = canvasEl.getContext('2d')
-
-if (canvasContext === null) throw Error("Could not find '2d' context")
+const rootEl = document.getElementById('root')!
 
 const YELLOW_ID = 'yellow'
 const RED_ID = 'red'
 const GREEN_ID = 'green'
 const MAGENTA_ID = 'magenta'
 
-runArtificialLife(canvasContext, {
+runArtificialLife({
   particleInteractionDistancePx: 120,
   particleSizePx: 1,
   velocityMultiplier: 0.5,
@@ -70,4 +57,5 @@ runArtificialLife(canvasContext, {
       ],
     },
   ],
-})
+}, rootEl)
+

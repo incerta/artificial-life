@@ -1,3 +1,5 @@
+import Canvas from './canvas-component'
+
 type ParticleGroup = {
   id: string
 
@@ -31,7 +33,7 @@ type Config = {
   particleGroups: ParticleGroup[]
 }
 
-type Particle = {
+export type Particle = {
   x: number
   y: number
 
@@ -43,16 +45,13 @@ type Particle = {
   color: string
 }
 
-export default function runArtificialLife(canvasContext: CanvasRenderingContext2D, cfg: Config) {
-  const draw = (x: number, y: number, color: string, sizePx: number) => {
-    canvasContext.fillStyle = color
-    canvasContext.fillRect(x, y, sizePx, sizePx)
-  }
+type ArtificialLifeOutput = {
+  config: Config
+  particles: Particle[]
+  renderNext: () => Particle[]
+}
 
-  const drawParticle = (particle: Particle) => {
-    draw(particle.x, particle.y, particle.color, cfg.particleSizePx)
-  }
-
+export function artificialLifeStateMachine(cfg: Config): ArtificialLifeOutput {
   const particleGroups: Map<string /* particleGroupId */, ParticleGroup & { particles: Particle[] }> = new Map()
 
   cfg.particleGroups.forEach((particleGroup) => {
@@ -98,26 +97,31 @@ export default function runArtificialLife(canvasContext: CanvasRenderingContext2
     }
   }
 
-  const renderParticles = () => {
-    canvasContext.clearRect(0, 0, 500, 500)
+  const particles = ((): Particle[] => {
+    const result: Particle[] = []
+    particleGroups.forEach((group) => group.particles.forEach((particle) => result.push(particle)))
+    return result
+  })()
 
-    particleGroups.forEach((group) => {
-      for (const affectedBy of group.affectedBy) {
-        const affectedByParticles = particleGroups.get(affectedBy.particleGroupId)
+  return {
+    config: cfg,
+    particles: particles,
+    renderNext: () => {
+      particleGroups.forEach((group) => {
+        for (const affectedBy of group.affectedBy) {
+          const affectedByParticles = particleGroups.get(affectedBy.particleGroupId)
 
-        if (affectedByParticles === undefined) {
-          throw Error(`Non consistent config, can not found group with id: ${affectedBy.particleGroupId}`)
+          if (affectedByParticles === undefined) {
+            throw Error(`Non consistent config, can not found group with id: ${affectedBy.particleGroupId}`)
+          }
+
+          applyPhysics(group.particles, affectedByParticles.particles, affectedBy.gravity)
         }
+      })
 
-        applyPhysics(group.particles, affectedByParticles.particles, affectedBy.gravity)
-      }
-    })
-
-    particleGroups.forEach((group) => group.particles.forEach(drawParticle))
-    requestAnimationFrame(renderParticles)
+      return particles
+    },
   }
-
-  renderParticles()
 }
 
 function generateParticles(options: {
@@ -155,4 +159,22 @@ function generateParticles(options: {
 
 function random(min: number, max: number) {
   return Math.random() * (max - min) + min
+}
+
+export function runArtificialLife(config: Config, rootEl: HTMLElement): void {
+  const life = artificialLifeStateMachine(config)
+  const canvas = new Canvas(config.canvasSize)
+
+  rootEl.append(canvas.element)
+
+  const renderParticles = () => {
+    canvas.clear()
+
+    life.renderNext()
+    life.particles.forEach((particle) => canvas.drawParticle(particle, life.config.particleSizePx))
+
+    window.requestAnimationFrame(renderParticles)
+  }
+
+  renderParticles()
 }
