@@ -1,4 +1,4 @@
-import { runArtificialLife } from './artificial-life'
+import { runArtificialLife, ArtificialLifeConfig } from './artificial-life'
 
 const rootEl = document.getElementById('root')!
 
@@ -7,7 +7,7 @@ const RED_ID = 'red'
 const GREEN_ID = 'green'
 const MAGENTA_ID = 'magenta'
 
-runArtificialLife({
+const arCfg: ArtificialLifeConfig = {
   particleInteractionDistancePx: 120,
   particleSizePx: 1,
   velocityMultiplier: 0.5,
@@ -57,5 +57,6 @@ runArtificialLife({
       ],
     },
   ],
-}, rootEl)
+}
 
+runArtificialLife(arCfg, rootEl)

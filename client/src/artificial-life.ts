@@ -18,7 +18,7 @@ type ParticleGroup = {
   }>
 }
 
-type Config = {
+export type ArtificialLifeConfig = {
   particleInteractionDistancePx: number
   particleSizePx: number
 
@@ -46,12 +46,12 @@ export type Particle = {
 }
 
 type ArtificialLifeOutput = {
-  config: Config
+  config: ArtificialLifeConfig
   particles: Particle[]
   renderNext: () => Particle[]
 }
 
-export function artificialLifeStateMachine(cfg: Config): ArtificialLifeOutput {
+export function artificialLifeStateMachine(cfg: ArtificialLifeConfig): ArtificialLifeOutput {
   const particleGroups: Map<string /* particleGroupId */, ParticleGroup & { particles: Particle[] }> = new Map()
 
   cfg.particleGroups.forEach((particleGroup) => {
@@ -161,7 +161,21 @@ function random(min: number, max: number) {
   return Math.random() * (max - min) + min
 }
 
-export function runArtificialLife(config: Config, rootEl: HTMLElement): void {
+export function checkLifeResult(p: { config: ArtificialLifeConfig; rootEl: HTMLElement; interactionsAmount: number }) {
+  const life = artificialLifeStateMachine(p.config)
+
+  for (let i = 0; i < p.interactionsAmount; i++) {
+    life.renderNext()
+  }
+
+  const canvas = new Canvas(p.config.canvasSize)
+
+  p.rootEl.append(canvas.element)
+
+  life.particles.forEach((particle) => canvas.drawParticle(particle, life.config.particleSizePx))
+}
+
+export function runArtificialLife(config: ArtificialLifeConfig, rootEl: HTMLElement): void {
   const life = artificialLifeStateMachine(config)
   const canvas = new Canvas(config.canvasSize)
 
