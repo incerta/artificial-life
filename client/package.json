@@ -6,8 +6,8 @@
   "scripts": {
     "start": "browser-sync start --server ./build --files ./ --no-ghost-mode --reload-debounce 1000",
     "watch": "npm run build && onchange ./src/* -- npm run build",
-    "build": "cp ./src/index.html ./build/ && npm run build-ts",
-    "build-ts": "esbuild ./src/index.ts --bundle --outfile=build/index.js"
+    "build": "mkdir -p build && cp ./src/index.html ./build/ && npm run build-ts",
+    "build-ts": "mkdir -p build && esbuild ./src/index.ts --bundle --outfile=build/index.js"
   },
   "keywords": [],
   "author": "",
